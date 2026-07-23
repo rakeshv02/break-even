@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ROI Calculator — Return on Investment | Tabutility</title>
-  <meta name="description" content="Calculate return on investment (ROI), annualised return, and profit/loss for any investment. Simple and detailed ROI analysis." />
-  <meta name="keywords" content="roi calculator, return on investment, investment return, annualised return, profit calculator" />
-  <link rel="canonical" href="https://roi.tabutility.com/" />
-  <meta property="og:title" content="ROI Calculator — Return on Investment" />
-  <meta property="og:description" content="Calculate ROI, annualised return and profit for any investment instantly." />
+  <title>Break-Even Calculator — Business Break Even Point | Tabutility</title>
+  <meta name="description" content="Calculate your business break-even point in units and revenue. See how many sales you need to cover fixed and variable costs." />
+  <meta name="keywords" content="break even calculator, break-even point, fixed costs variable costs, business calculator, profit calculator" />
+  <link rel="canonical" href="https://break-even.tabutility.com/" />
+  <meta property="og:title" content="Break-Even Calculator" />
+  <meta property="og:description" content="Calculate how many units you need to sell to break even and start making profit." />
   <meta property="og:type" content="website" />
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚖️</text></svg>" />
   <meta name="robots" content="index, follow" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7039091592734005" crossorigin="anonymous"></script>
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-78VZWJ5B1W"></script>
@@ -24,25 +24,29 @@
 <script type="text/babel">
 //<![CDATA[
 const { useState } = React;
-function fmt(n){return '$'+Math.abs(Math.round(n)).toLocaleString();}
-function fmtPct(n){return (n>=0?'+':'')+n.toFixed(2)+'%';}
+function fmt(n,d=0){return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
 
 function App() {
-  const [initial, setInitial] = useState(10000);
-  const [final, setFinal] = useState(14500);
-  const [years, setYears] = useState(3);
-  const [fees, setFees] = useState(0);
+  const [fixedCosts, setFixed] = useState(10000);
+  const [price, setPrice] = useState(50);
+  const [varCost, setVar] = useState(20);
+  const [targetProfit, setTarget] = useState(0);
+  const [units, setUnits] = useState(500);
 
-  const inv = Number(initial)||0;
-  const fin = Number(final)||0;
-  const yrs = Number(years)||1;
-  const fee = Number(fees)||0;
+  const fc = Number(fixedCosts)||0;
+  const p = Number(price)||0;
+  const vc = Number(varCost)||0;
+  const tp = Number(targetProfit)||0;
+  const u = Number(units)||0;
 
-  const netFinal = fin - fee;
-  const profit = netFinal - inv;
-  const roi = inv > 0 ? (profit / inv * 100) : 0;
-  const annualised = inv > 0 && yrs > 0 ? (Math.pow(netFinal/inv, 1/yrs)-1)*100 : 0;
-  const positive = profit >= 0;
+  const contributionMargin = p - vc;
+  const cmRatio = p > 0 ? contributionMargin / p : 0;
+  const breakEvenUnits = contributionMargin > 0 ? Math.ceil(fc / contributionMargin) : 0;
+  const breakEvenRevenue = breakEvenUnits * p;
+  const targetUnits = contributionMargin > 0 ? Math.ceil((fc + tp) / contributionMargin) : 0;
+  const targetRevenue = targetUnits * p;
+  const profitAtUnits = contributionMargin * u - fc;
+  const marginOfSafety = u > breakEvenUnits ? ((u - breakEvenUnits) / u * 100).toFixed(1) : 0;
 
   return (
     <div style={{maxWidth:520,margin:'0 auto',paddingBottom:40}}>
@@ -50,54 +54,70 @@ function App() {
         <a href="https://tabutility.com" style={{color:'#a5b4fc',textDecoration:'none',fontSize:14}}>← All Tools</a>
         <span style={{color:'#fff',fontWeight:700,fontSize:15}}>⚡ Tabutility</span>
       </div>
-      <div style={{background:'linear-gradient(135deg,#0891b2,#0e7490)',padding:'28px 20px',textAlign:'center',color:'#fff'}}>
-        <div style={{fontSize:36,marginBottom:8}}>📈</div>
-        <h1 style={{margin:'0 0 6px',fontSize:22,fontWeight:900}}>ROI Calculator</h1>
-        <p style={{margin:0,fontSize:13,opacity:0.85}}>Return on investment · annualised return · profit/loss</p>
+      <div style={{background:'linear-gradient(135deg,#4f46e5,#4338ca)',padding:'28px 20px',textAlign:'center',color:'#fff'}}>
+        <div style={{fontSize:36,marginBottom:8}}>⚖️</div>
+        <h1 style={{margin:'0 0 6px',fontSize:22,fontWeight:900}}>Break-Even Calculator</h1>
+        <p style={{margin:0,fontSize:13,opacity:0.85}}>How many sales to cover costs and hit your profit target</p>
       </div>
       <div style={{padding:20}}>
         <div style={{background:'#fff',borderRadius:14,padding:20,boxShadow:'0 2px 12px rgba(0,0,0,0.06)',marginBottom:16}}>
-          {[['Initial Investment','$',initial,setInitial],['Final Value','$',final,setFinal],['Fees / Costs','$',fees,setFees]].map(([label,prefix,val,setter])=>(
-            <div key={label} style={{marginBottom:14}}>
-              <label style={{fontSize:13,fontWeight:600,color:'#374151',display:'block',marginBottom:6}}>{label}</label>
+          {[
+            ['Fixed Costs (monthly)','$',fixedCosts,setFixed,'Total overheads: rent, salaries, software'],
+            ['Sale Price per Unit','$',price,setPrice,'Price you charge per unit'],
+            ['Variable Cost per Unit','$',varCost,setVar,'Materials, shipping, payment fees per unit'],
+            ['Target Monthly Profit','$',targetProfit,setTarget,'Leave at 0 for pure break-even'],
+          ].map(([l,pre,v,s,hint])=>(
+            <div key={l} style={{marginBottom:14}}>
+              <label style={{fontSize:13,fontWeight:600,color:'#374151',display:'block',marginBottom:4}}>{l}</label>
+              <div style={{fontSize:11,color:'#9ca3af',marginBottom:5}}>{hint}</div>
               <div style={{position:'relative'}}>
-                <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'#6b7280'}}>{prefix}</span>
-                <input type="number" value={val} onChange={e=>setter(e.target.value)}
-                  style={{width:'100%',padding:'11px 12px 11px 28px',borderRadius:10,border:'2px solid #e5e7eb',fontSize:16,boxSizing:'border-box'}} />
+                <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',color:'#6b7280'}}>{pre}</span>
+                <input type="number" value={v} onChange={e=>s(e.target.value)}
+                  style={{width:'100%',padding:'10px 12px 10px 28px',borderRadius:10,border:'2px solid #e5e7eb',fontSize:15,boxSizing:'border-box'}} />
               </div>
             </div>
           ))}
-          <div>
-            <label style={{fontSize:13,fontWeight:600,color:'#374151',display:'block',marginBottom:6}}>Investment Period (years)</label>
-            <input type="number" value={years} onChange={e=>setYears(e.target.value)} min={0.1} step={0.5}
-              style={{width:'100%',padding:'11px 12px',borderRadius:10,border:'2px solid #e5e7eb',fontSize:16,boxSizing:'border-box'}} />
+        </div>
+
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
+          <div style={{background:'#eef2ff',borderRadius:14,padding:16,textAlign:'center'}}>
+            <div style={{fontSize:11,fontWeight:700,color:'#4338ca'}}>BREAK-EVEN UNITS</div>
+            <div style={{fontSize:32,fontWeight:900,color:'#4f46e5',margin:'4px 0'}}>{breakEvenUnits.toLocaleString()}</div>
+            <div style={{fontSize:12,color:'#6366f1'}}>units / month</div>
+          </div>
+          <div style={{background:'#f0fdf4',borderRadius:14,padding:16,textAlign:'center'}}>
+            <div style={{fontSize:11,fontWeight:700,color:'#166534'}}>BREAK-EVEN REVENUE</div>
+            <div style={{fontSize:32,fontWeight:900,color:'#16a34a',margin:'4px 0'}}>{fmt(breakEvenRevenue)}</div>
+            <div style={{fontSize:12,color:'#22c55e'}}>/ month</div>
           </div>
         </div>
 
-        <div style={{background: positive?'#f0fdf4':'#fef2f2',borderRadius:14,padding:24,textAlign:'center',marginBottom:16,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
-          <div style={{fontSize:13,fontWeight:600,color:'#6b7280',marginBottom:4}}>TOTAL ROI</div>
-          <div style={{fontSize:52,fontWeight:900,color: positive?'#059669':'#dc2626'}}>{fmtPct(roi)}</div>
-          <div style={{fontSize:15,color: positive?'#059669':'#dc2626',fontWeight:700}}>{positive?'+':''}{fmt(profit)} {positive?'profit':'loss'}</div>
-        </div>
-
-        <div style={{background:'#fff',borderRadius:14,padding:20,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+        <div style={{background:'#fff',borderRadius:14,padding:20,boxShadow:'0 2px 12px rgba(0,0,0,0.06)',marginBottom:16}}>
           {[
-            ['Initial Investment', fmt(inv)],
-            ['Final Value (before fees)', fmt(fin)],
-            ['Fees / Transaction Costs', fee > 0 ? '-'+fmt(fee) : '$0'],
-            ['Net Final Value', fmt(netFinal)],
-            ['Net Profit / Loss', (positive?'+':'-')+fmt(profit)],
-            ['Total ROI', fmtPct(roi)],
-            ['Annualised Return (CAGR)', fmtPct(annualised)+' / yr'],
+            ['Contribution Margin', fmt(contributionMargin,2)+' per unit'],
+            ['Contribution Margin Ratio', (cmRatio*100).toFixed(1)+'%'],
+            ['Break-Even Units', breakEvenUnits.toLocaleString()+' units'],
+            ['Break-Even Revenue', fmt(breakEvenRevenue)],
+            ...(tp>0?[['Units for Target Profit', targetUnits.toLocaleString()+' units'],['Revenue for Target Profit', fmt(targetRevenue)]]:[]),
           ].map(([l,v])=>(
             <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid #f0f0f0',fontSize:14}}>
-              <span style={{color:'#6b7280'}}>{l}</span>
-              <strong style={{color: l.includes('Loss')||l.includes('Fees')&&fee>0?'#dc2626':l.includes('ROI')||l.includes('Profit')||l.includes('CAGR')?positive?'#059669':'#dc2626':'#1a1a2e'}}>{v}</strong>
+              <span style={{color:'#6b7280'}}>{l}</span><strong>{v}</strong>
             </div>
           ))}
         </div>
-        <div style={{background:'#ecfeff',borderRadius:12,padding:16,marginTop:16,fontSize:13,color:'#0e7490',lineHeight:1.6}}>
-          <strong>CAGR</strong> (Compound Annual Growth Rate) is the annualised ROI — useful when comparing investments held for different time periods.
+
+        <div style={{background:'#fff',borderRadius:14,padding:20,boxShadow:'0 2px 12px rgba(0,0,0,0.06)'}}>
+          <label style={{fontSize:13,fontWeight:600,color:'#374151',display:'block',marginBottom:8}}>Check Profit at a Given Volume</label>
+          <div style={{display:'flex',gap:12,alignItems:'center',marginBottom:12}}>
+            <input type="number" value={units} onChange={e=>setUnits(e.target.value)} placeholder="Units sold"
+              style={{flex:1,padding:'10px 12px',borderRadius:10,border:'2px solid #e5e7eb',fontSize:15}} />
+            <span style={{fontSize:13,color:'#6b7280'}}>units</span>
+          </div>
+          <div style={{background:profitAtUnits>=0?'#f0fdf4':'#fef2f2',borderRadius:10,padding:14,textAlign:'center'}}>
+            <div style={{fontSize:13,color:'#6b7280'}}>Profit / Loss at {Number(units).toLocaleString()} units</div>
+            <div style={{fontSize:28,fontWeight:900,color:profitAtUnits>=0?'#16a34a':'#dc2626'}}>{profitAtUnits>=0?'+':''}{fmt(profitAtUnits)}</div>
+            {profitAtUnits>=0&&<div style={{fontSize:12,color:'#6b7280',marginTop:4}}>Margin of safety: {marginOfSafety}%</div>}
+          </div>
         </div>
       </div>
     </div>
